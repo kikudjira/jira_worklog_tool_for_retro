@@ -2,3 +2,4 @@
 credits.py
 *.csv
 __pycache__
+*.json
