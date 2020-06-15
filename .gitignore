@@ -1,1 +1,4 @@
 .DS_Store
+credits.py
+*.csv
+__pycache__
