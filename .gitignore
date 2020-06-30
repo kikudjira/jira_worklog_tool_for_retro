@@ -3,3 +3,9 @@ credits.py
 *.csv
 __pycache__
 *.json
+/.idea/
+/.idea/jira_worklog_tool_for_retro.iml
+/.idea/jsonSchemas.xml
+/.idea/vcs.xml
+/.idea/misc.xml
+/.idea/modules.xml
