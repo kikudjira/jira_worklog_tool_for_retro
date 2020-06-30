@@ -9,3 +9,9 @@ __pycache__
 /.idea/vcs.xml
 /.idea/misc.xml
 /.idea/modules.xml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/vcs.xml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/inspectionProfiles/profiles_settings.xml
+*.xml
+*.iml
