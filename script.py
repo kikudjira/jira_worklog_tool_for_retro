@@ -13,5 +13,5 @@ data = r.json()
 with open('data.json', 'w') as f:
     json.dump(data, f)
 
-df = pd.read_json('data.json')
-df.to_csv('data.csv')
+# df = pd.read_json('data.json')
+# df.to_csv('data.csv')
