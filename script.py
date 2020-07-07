@@ -51,7 +51,7 @@ projectsDataFrame = get_data_frame_from_json(projectsData, projectsKeys, project
 
 # Вводим название или ID проекта и проверяем есть ли у нас такой
 
-# project = 'Palex'
+# project = 'GMPSS'
 project = input('Project: ')
 
 while not projectsDataFrame.isin([project]).any().any():
@@ -63,17 +63,7 @@ while not projectsDataFrame.isin([project]).any().any():
 # dateFrom = '05, 07, 2020'.split(', ')
 dateFrom = input('From Date, Month, Year: ').split(', ')
 
-# Получаем DataFrame не дев сотрудников (может только админ джиры)
-# notDevURL = 'https://jira.csssr.io/rest/api/2/group/member?groupname=csssr-notdev'
-# notDevData = get_json_from_jira(notDevURL)['values']
-#
-# notDevKeys = ['displayName'], ['key']
-# notDevColumns = {
-#     0: 'Name',
-#     1: 'Key'}
-#
-# notDevDataFrame = get_data_frame_from_json(notDevData, notDevKeys, notDevColumns).to_csv('notDev.csv')
-
+# Получаем DataFrame не дев сотрудников
 notDevDataFrame = pd.read_csv('notDev.csv')
 
 # Получаем задачи за указанный период времени
@@ -109,6 +99,7 @@ issuesDataFrame = issuesInPeriodDataFrame.loc[issuesInPeriodDataFrame['Component
 # Вытаскиваем все ворклоги из каждой задачи
 print('Начинаю вытаскивать ворклоги из всех задач...')
 totalWorklogsData = []
+
 n = 0
 n_index = len(issuesDataFrame.index)
 for issue in issuesDataFrame['Issue Id']:
