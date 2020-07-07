@@ -49,18 +49,18 @@ projectsColumns = {
 projectsDataFrame = get_data_frame_from_json(projectsData, projectsKeys, projectsColumns)
 
 # Вводим название или ID проекта и проверяем есть ли у нас такой
-# project = 'Smartbe'
-project = input('Project: ')
+project = 'Smartbe'
+# project = input('Project: ')
 
 while not projectsDataFrame.isin([project]).any().any():
     print('Error! Try again.')
     project = input('Project: ')
 
 # Вводим период времени и конверитим в unix timestamp
-# dateFrom = '27, 06, 2020'.split(', ')
+dateFrom = '27, 06, 2020'.split(', ')
 # dateTo = '03, 06, 2020'.split(', ')
 
-dateFrom = input('From Date, Month, Year: ').split(', ')
+# dateFrom = input('From Date, Month, Year: ').split(', ')
 # dateTo = input('To Date, Month, Year: ').split(', ')
 
 # Получаем DataFrame не дев сотрудников
@@ -132,15 +132,18 @@ finalDataFrame = totalWorklogsDataFrame.merge(issuesInPeriodDataFrame, on='Issue
 finalDataFrame = finalDataFrame.fillna(0)
 finalDataFrame = finalDataFrame.loc[finalDataFrame['Time Spent'] != 0.0]
 
-# userDataFrame = finalDataFrame.drop(columns=['Issue Key', 'Time Spent', 'Issue Type', 'Components', 'Project', 'Summary', 'Original Estimate'])
-# userDataFrame = userDataFrame.groupby('Issue Id')['Author'].apply(lambda x: list(np.unique(x)))
-#
-# finalDataFrame = finalDataFrame.merge(userDataFrame, on='Issue Id', how='outer')
+userDataFrame = finalDataFrame.drop(columns=['Issue Key', 'Time Spent', 'Issue Type', 'Components', 'Project', 'Summary', 'Original Estimate'])
+userDataFrame = userDataFrame.groupby('Issue Id')['Author'].apply(lambda x: list(np.unique(x))).reset_index()
+userDataFrame['Author'] = userDataFrame['Author'].apply(lambda x: ','.join(map(str, x)))
+
+finalDataFrame = finalDataFrame.merge(userDataFrame, on='Issue Id', how='outer')
+finalDataFrame = finalDataFrame.drop(columns=['Author_x']).rename(columns={'Author_y': 'Author'})
+
 finalDataFrame['Issue Key'] = 'https://jira.csssr.io/browse/' + finalDataFrame['Issue Key']
 finalDataFrame['Original Estimate'] = (finalDataFrame['Original Estimate'] / 60) / 60
 finalDataFrame['Time Spent'] = (finalDataFrame['Time Spent'] / 60) / 60
 
-finalDataFramePivot = finalDataFrame.pivot_table(index=['Issue Key', 'Summary', 'Issue Type', 'Original Estimate'],
+finalDataFramePivot = finalDataFrame.pivot_table(index=['Issue Key', 'Summary', 'Issue Type', 'Author', 'Original Estimate'],
                                                  values=['Time Spent'], aggfunc=np.sum)
 finalDataFrame = finalDataFramePivot.reindex(finalDataFramePivot.sort_values(by='Issue Type', ascending=False).index)
 
