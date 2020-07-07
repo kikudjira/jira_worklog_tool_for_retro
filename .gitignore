@@ -9,3 +9,4 @@ test.py
 *.xml
 *.iml
 script_1.py
+notDev.py
