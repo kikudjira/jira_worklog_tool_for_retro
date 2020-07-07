@@ -1,10 +1,11 @@
 import pandas as pd
-import json
+import functools
 import requests
 import credits
+import numpy as np
 
 
-def json_from_jira(url):
+def get_json_from_jira(url):
     username = credits.username
     password = credits.password
     r = requests.get(url, auth=(username, password))
@@ -12,50 +13,135 @@ def json_from_jira(url):
     return data
 
 
-url_get_projects = 'https://jira.csssr.io/rest/api/2/project'
-data_projects = json_from_jira(url_get_projects)
+def get_field(obj, field_name):
+    return obj[field_name]
 
-list_projects = []
-for string in data_projects:
-    a = string['key'], \
-        string["name"]
-    list_projects.append(a)
 
-data_frame_projects = pd.DataFrame(list_projects).rename(columns=
-{
+def post_json_to_jira(url, body):
+    username = credits.username
+    password = credits.password
+    r = requests.post(url, json=body, auth=(username, password))
+    data = r.json()
+    return data
+
+
+def get_data_frame_from_json(data, keys, columns):
+    string_list = []
+    for s in data:
+        a = ()
+        for key in keys:
+            a += ((functools.reduce(get_field, key, s)),)
+        string_list.append(a)
+    data_frame = pd.DataFrame(string_list)
+    data_frame = data_frame.rename(columns=columns)
+    return data_frame
+
+
+# Получаем DataFrame проектов
+projectsURL = 'https://jira.csssr.io/rest/api/2/project'
+projectsData = get_json_from_jira(projectsURL)
+
+projectsKeys = ['key'], ['name']
+projectsColumns = {
     0: 'Project Id',
-    1: 'Project Name',
-}).to_csv('projects.csv')
+    1: 'Project Name'}
 
-project = input('Project Id: ')
-time_update = input('Days ago: ')
+projectsDataFrame = get_data_frame_from_json(projectsData, projectsKeys, projectsColumns)
 
-# project = 'GMPSS'
-# time_update = '7'
+# Вводим название или ID проекта и проверяем есть ли у нас такой
+# project = 'Smartbe'
+project = input('Project: ')
 
-url_get_updated = 'https://jira.csssr.io/rest/api/2/search?jql=project%20%3D%20' + project + '%20and%20updatedDate%20%3E%3D%20-' + time_update + 'd&maxResults=500'
+while not projectsDataFrame.isin([project]).any().any():
+    print('Error! Try again.')
+    project = input('Project: ')
 
-data_updated = json_from_jira(url_get_updated)
+# Вводим период времени и конверитим в unix timestamp
+# dateFrom = '27, 06, 2020'.split(', ')
+# dateTo = '03, 06, 2020'.split(', ')
 
-if data_updated['total'] > 500:
-    print('Не все задачи попали в таблицу, укажите период меньше текущего')
+dateFrom = input('From Date, Month, Year: ').split(', ')
+# dateTo = input('To Date, Month, Year: ').split(', ')
 
-list_updated = []
-for string in data_updated['issues']:
-    a = string['key'], \
-        'https://jira.csssr.io/browse/' + string['key'], \
-        string["fields"]['timeoriginalestimate'], \
-        string['fields']['issuetype']['name'], \
-        string['fields']['summary']
-    list_updated.append(a)
+# Получаем DataFrame не дев сотрудников
+notDevURL = 'https://jira.csssr.io/rest/api/2/group/member?groupname=csssr-notdev'
+notDevData = get_json_from_jira(notDevURL)['values']
 
-data_frame_updated = pd.DataFrame(list_updated).rename(columns=
-{
+notDevKeys = ['displayName'], ['key']
+notDevColumns = {
+    0: 'Name',
+    1: 'Key'}
+
+notDevDataFrame = get_data_frame_from_json(notDevData, notDevKeys, notDevColumns)
+
+# Получаем задачи за указанный период времени
+'https://jira.csssr.io/rest/api/2/search?maxResults=500&jql=project%20%3D%20GAZ-MPSS%20and%20updated%20%3E%3D%20%222020%2F07%2F01%2000%3A00%22'
+issuesInPeriodURL = 'https://jira.csssr.io/rest/api/2/search?maxResults=500&jql=project%20%3D%20' \
+                    + project + '%20and%20updated%20%3E%3D%20%22' \
+                    + dateFrom[2] + '%2F' \
+                    + dateFrom[1] + '%2F' \
+                    + dateFrom[0] + '%2000%3A00%22'
+
+issuesInPeriodData = get_json_from_jira(issuesInPeriodURL)
+
+issuesInPeriodKeys = ['id'], ['key'], ['fields', 'issuetype', 'name'], ['fields', 'components'], \
+                     ['fields', 'project', 'name'], ['fields', 'summary'], ['fields', 'timeoriginalestimate']
+issuesInPeriodColumns = {
     0: 'Issue Id',
-    1: 'URL',
-    2: 'Original Estimate',
-    3: 'Issue Type',
-    4: 'Summary'
-})
+    1: 'Issue Key',
+    2: 'Issue Type',
+    3: 'Components',
+    4: 'Project',
+    5: 'Summary',
+    6: 'Original Estimate'
+}
 
-data_frame_updated.to_csv('updated.csv')
+issuesInPeriodDataFrame = get_data_frame_from_json(issuesInPeriodData['issues'], issuesInPeriodKeys,
+                                                   issuesInPeriodColumns)
+
+for index, a in issuesInPeriodDataFrame.iterrows():
+    if a['Components'] != [] and a['Components'][0]['name'] == 'do_not_analyze':
+        issuesInPeriodDataFrame.at[index, 'Components'] = 'do_not_analyze'
+
+issuesInPeriodDataFrame = issuesInPeriodDataFrame.loc[issuesInPeriodDataFrame['Components'] != 'do_not_analyze']
+
+# Вытаскиваем все ворклоги из каждой задачи
+print('Начинаю вытаскивать ворклоги из всех задач...')
+totalWorklogsData = []
+n = 0
+n_index = len(issuesInPeriodDataFrame.index)
+for issue in issuesInPeriodDataFrame['Issue Id']:
+    n += 1
+    print(n, " from ", n_index )
+    getWorklogFromIssueURL = 'https://jira.csssr.io/rest/api/2/issue/' + issue + '/worklog'
+    partWorklogs = get_json_from_jira(getWorklogFromIssueURL)
+    totalWorklogsData += partWorklogs['worklogs']
+
+totalWorklogsKeys = ['issueId'], ['author', 'displayName'], ['timeSpentSeconds']
+totalWorklogsColumns = {
+    0: 'Issue Id',
+    1: 'Author',
+    2: 'Time Spent'
+}
+
+totalWorklogsDataFrame = get_data_frame_from_json(totalWorklogsData, totalWorklogsKeys, totalWorklogsColumns)
+totalWorklogsDataFrame = totalWorklogsDataFrame.loc[totalWorklogsDataFrame['Author'].isin(notDevDataFrame['Name']) == False]
+
+# Теперь мерджим дата фреймы финально
+finalDataFrame = totalWorklogsDataFrame.merge(issuesInPeriodDataFrame, on='Issue Id', how='outer')
+finalDataFrame = finalDataFrame.fillna(0)
+finalDataFrame = finalDataFrame.loc[finalDataFrame['Time Spent'] != 0.0]
+
+# userDataFrame = finalDataFrame.drop(columns=['Issue Key', 'Time Spent', 'Issue Type', 'Components', 'Project', 'Summary', 'Original Estimate'])
+# userDataFrame = userDataFrame.groupby('Issue Id')['Author'].apply(lambda x: list(np.unique(x)))
+#
+# finalDataFrame = finalDataFrame.merge(userDataFrame, on='Issue Id', how='outer')
+finalDataFrame['Issue Key'] = 'https://jira.csssr.io/browse/' + finalDataFrame['Issue Key']
+finalDataFrame['Original Estimate'] = (finalDataFrame['Original Estimate'] / 60) / 60
+finalDataFrame['Time Spent'] = (finalDataFrame['Time Spent'] / 60) / 60
+
+finalDataFramePivot = finalDataFrame.pivot_table(index=['Issue Key', 'Summary', 'Issue Type', 'Original Estimate'],
+                                                 values=['Time Spent'], aggfunc=np.sum)
+finalDataFrame = finalDataFramePivot.reindex(finalDataFramePivot.sort_values(by='Issue Type', ascending=False).index)
+
+finalDataFrame.to_csv('result.csv')
