@@ -1,3 +1,5 @@
+#!/usr/local/bin/python3
+
 import pandas as pd
 import functools
 import requests
@@ -104,7 +106,7 @@ n = 0
 n_index = len(issuesDataFrame.index)
 for issue in issuesDataFrame['Issue Id']:
     n += 1
-    print(n, " from ", n_index )
+    print(n, " from ", n_index)
     getWorklogFromIssueURL = 'https://jira.csssr.io/rest/api/2/issue/' + issue + '/worklog'
     partWorklogs = get_json_from_jira(getWorklogFromIssueURL)
     totalWorklogsData += partWorklogs['worklogs']
@@ -118,7 +120,8 @@ totalWorklogsColumns = {
 }
 
 totalWorklogsDataFrame = get_data_frame_from_json(totalWorklogsData, totalWorklogsKeys, totalWorklogsColumns)
-totalWorklogsDataFrame = totalWorklogsDataFrame.loc[totalWorklogsDataFrame['Author'].isin(notDevDataFrame['Name']) == False]
+totalWorklogsDataFrame = totalWorklogsDataFrame.loc[
+    totalWorklogsDataFrame['Author'].isin(notDevDataFrame['Name']) == False]
 
 # Делаем датафрейм с ворклогами в периоде указанной даты
 timestampFrom = str(int(datetime(int(dateFrom[2]), int(dateFrom[1]), int(dateFrom[0])).timestamp()))
