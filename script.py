@@ -150,7 +150,7 @@ finalDataFrame = finalDataFrame.loc[finalDataFrame['Time Spent'] != 0.0]
 userDataFrame = finalDataFrame.drop(columns=['Issue Key', 'Time Spent', 'Issue Type', 'Components', 'Project',
                                              'Summary', 'Original Estimate'])
 userDataFrame = userDataFrame.groupby('Issue Id')['Author'].apply(lambda x: list(np.unique(x))).reset_index()
-userDataFrame['Author'] = userDataFrame['Author'].apply(lambda x: ','.join(map(str, x)))
+userDataFrame['Author'] = userDataFrame['Author'].apply(lambda x: ', '.join(map(str, x)))
 
 finalDataFrame = finalDataFrame.merge(userDataFrame, on='Issue Id', how='outer')
 finalDataFrame = finalDataFrame.drop(columns=['Author_x']).rename(columns={'Author_y': 'Worklog Authors'})
@@ -168,6 +168,6 @@ finalDataFrame = finalDataFramePivot.reindex(finalDataFramePivot.sort_values(by=
 finalDataFrame = finalDataFrame.join(periodWorklogsDataFramePivot, on='Issue Id', how='outer').reset_index()
 finalDataFrame = finalDataFrame.drop(columns=['Issue Id'])
 finalDataFrame = finalDataFrame.loc[finalDataFrame['Time Spent Period'].isnull() == False]
-finalDataFrame = finalDataFrame.round(2)
+finalDataFrame = finalDataFrame.round(2).reset_index().drop(columns=['index'])
 
 finalDataFrame.to_csv('result.csv')
