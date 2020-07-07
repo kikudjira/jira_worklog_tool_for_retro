@@ -137,7 +137,7 @@ userDataFrame = userDataFrame.groupby('Issue Id')['Author'].apply(lambda x: list
 userDataFrame['Author'] = userDataFrame['Author'].apply(lambda x: ','.join(map(str, x)))
 
 finalDataFrame = finalDataFrame.merge(userDataFrame, on='Issue Id', how='outer')
-finalDataFrame = finalDataFrame.drop(columns=['Author_x']).rename(columns={'Author_y': 'Author'})
+finalDataFrame = finalDataFrame.drop(columns=['Author_x']).rename(columns={'Author_y': 'Worklog Authors'})
 
 finalDataFrame['Issue Key'] = 'https://jira.csssr.io/browse/' + finalDataFrame['Issue Key']
 finalDataFrame['Original Estimate'] = (finalDataFrame['Original Estimate'] / 60) / 60
@@ -146,7 +146,7 @@ finalDataFrame['Time Spent'] = (finalDataFrame['Time Spent'] / 60) / 60
 for index, a in finalDataFrame.iterrows():
     finalDataFrame.at[index, 'Time Spent'] = float("{0:.2f}".format(a['Time Spent']))
 
-finalDataFramePivot = finalDataFrame.pivot_table(index=['Issue Key', 'Summary', 'Issue Type', 'Author', 'Original Estimate'],
+finalDataFramePivot = finalDataFrame.pivot_table(index=['Issue Key', 'Summary', 'Issue Type', 'Worklog Authors', 'Original Estimate'],
                                                  values=['Time Spent'], aggfunc=np.sum)
 finalDataFrame = finalDataFramePivot.reindex(finalDataFramePivot.sort_values(by='Issue Type', ascending=False).index)
 
