@@ -77,7 +77,6 @@ dateFrom = input('From Date, Month, Year: ').split(', ')
 notDevDataFrame = pd.read_csv('notDev.csv')
 
 # Получаем задачи за указанный период времени
-'https://jira.csssr.io/rest/api/2/search?maxResults=500&jql=project%20%3D%20GAZ-MPSS%20and%20updated%20%3E%3D%20%222020%2F07%2F01%2000%3A00%22'
 issuesInPeriodURL = 'https://jira.csssr.io/rest/api/2/search?maxResults=500&jql=project%20%3D%20' \
                     + project + '%20and%20updated%20%3E%3D%20%22' \
                     + dateFrom[2] + '%2F' \
