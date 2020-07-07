@@ -2,11 +2,10 @@
 __pycache__
 credits.py
 test.py
+script_1.py
 *.csv
 *.json
 .run
 .idea
 *.xml
 *.iml
-script_1.py
-notDev.py
