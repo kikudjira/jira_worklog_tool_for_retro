@@ -54,11 +54,25 @@ projectsDataFrame = get_data_frame_from_json(projectsData, projectsKeys, project
 # Вводим название или ID проекта и проверяем есть ли у нас такой
 
 # project = 'GMPSS'
-project = input('Project: ')
+projects = input('Project(s): ').split(', ')
 
-while not projectsDataFrame.isin([project]).any().any():
-    print('Error! Try again.')
-    project = input('Project: ')
+e = ''
+wrongProject = ''
+for s in projects:
+    if projectsDataFrame.isin([s]).any().any():
+        e = 'ok'
+    else:
+        e = 'not ok'
+        wrongProject = s
+while e != 'ok':
+    print('Wrong! Project ' + wrongProject + ' is not in the Jira. Try again.')
+    projects = input('Project(s): ').split(', ')
+    for s in projects:
+        if projectsDataFrame.isin([s]).any().any():
+            e = 'ok'
+        else:
+            e = 'not ok'
+            wrongProject = s
 
 # Вводим период времени и конверитим в unix timestamp
 
@@ -69,8 +83,9 @@ dateFrom = input('From Date, Month, Year: ').split(', ')
 notDevDataFrame = pd.read_csv('notDev.csv')
 
 # Получаем задачи за указанный период времени
-issuesInPeriodURL = 'https://jira.csssr.io/rest/api/2/search?maxResults=500&jql=project%20%3D%20' \
-                    + project + '%20and%20updated%20%3E%3D%20%22' \
+projectForJQL = '%2C%20'.join(projects)
+issuesInPeriodURL = 'https://jira.csssr.io/rest/api/2/search?maxResults=500&jql=project%20in%20' \
+                    '(' + projectForJQL + ')%20and%20updated%20%3E%3D%20%22' \
                     + dateFrom[2] + '%2F' \
                     + dateFrom[1] + '%2F' \
                     + dateFrom[0] + '%2000%3A00%22'
