@@ -56,22 +56,22 @@ projectsDataFrame = get_data_frame_from_json(projectsData, projectsKeys, project
 # project = 'GMPSS'
 projects = input('Project(s): ').split(', ')
 
-e = ''
+checkedProject = ''
 wrongProject = ''
 for s in projects:
     if projectsDataFrame.isin([s]).any().any():
-        e = 'ok'
+        checkedProject = 'ok'
     else:
-        e = 'not ok'
+        checkedProject = 'not ok'
         wrongProject = s
-while e != 'ok':
+while checkedProject != 'ok':
     print('Wrong! Project ' + wrongProject + ' is not in the Jira. Try again.')
     projects = input('Project(s): ').split(', ')
     for s in projects:
         if projectsDataFrame.isin([s]).any().any():
-            e = 'ok'
+            checkedProject = 'ok'
         else:
-            e = 'not ok'
+            checkedProject = 'not ok'
             wrongProject = s
 
 # Вводим период времени и конверитим в unix timestamp
