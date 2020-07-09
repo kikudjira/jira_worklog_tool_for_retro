@@ -1,4 +1,5 @@
 #!/usr/local/bin/python3
+#coding=utf-8
 
 import pandas as pd
 import functools
@@ -6,7 +7,7 @@ import requests
 import credits
 import numpy as np
 from datetime import datetime
-
+import os
 
 def get_json_from_jira(url):
     username = credits.username
@@ -39,6 +40,8 @@ def get_data_frame_from_json(data, keys, columns):
     data_frame = data_frame.rename(columns=columns)
     return data_frame
 
+
+dirname, filename = os.path.split(os.path.abspath(__file__))
 
 # Получаем DataFrame проектов
 projectsURL = 'https://jira.csssr.io/rest/api/2/project'
@@ -80,7 +83,7 @@ while checkedProject != 'ok':
 dateFrom = input('From Date, Month, Year: ').split(', ')
 
 # Получаем DataFrame не дев сотрудников
-notDevDataFrame = pd.read_csv('notDev.csv')
+notDevDataFrame = pd.read_csv(str(dirname) + '/notDev.csv')
 
 # Получаем задачи за указанный период времени
 projectForJQL = '%2C%20'.join(projects)
@@ -93,7 +96,9 @@ issuesInPeriodURL = 'https://jira.csssr.io/rest/api/2/search?maxResults=500&jql=
 issuesInPeriodData = get_json_from_jira(issuesInPeriodURL)
 
 issuesInPeriodKeys = ['id'], ['key'], ['fields', 'issuetype', 'name'], ['fields', 'components'], \
-                     ['fields', 'project', 'name'], ['fields', 'summary'], ['fields', 'timeoriginalestimate']
+                     ['fields', 'project', 'name'], ['fields', 'summary'], ['fields', 'timeoriginalestimate'], \
+                     ['fields', 'status', 'name']
+
 issuesInPeriodColumns = {
     0: 'Issue Id',
     1: 'Issue Key',
@@ -101,7 +106,8 @@ issuesInPeriodColumns = {
     3: 'Components',
     4: 'Project',
     5: 'Summary',
-    6: 'Original Estimate'
+    6: 'Original Estimate',
+    7: 'Status'
 }
 
 issuesInPeriodDataFrame = get_data_frame_from_json(issuesInPeriodData['issues'], issuesInPeriodKeys,
@@ -174,7 +180,7 @@ finalDataFrame['Issue Key'] = 'https://jira.csssr.io/browse/' + finalDataFrame['
 finalDataFrame['Original Estimate'] = (finalDataFrame['Original Estimate'] / 60) / 60
 finalDataFrame['Time Spent'] = (finalDataFrame['Time Spent'] / 60) / 60
 
-finalDataFramePivot = finalDataFrame.pivot_table(index=['Issue Id', 'Issue Key', 'Summary', 'Issue Type',
+finalDataFramePivot = finalDataFrame.pivot_table(index=['Issue Id', 'Issue Key', 'Summary', 'Issue Type', 'Status',
                                                         'Worklog Authors', 'Original Estimate'],
                                                  values=['Time Spent'],
                                                  aggfunc=np.sum)
@@ -185,4 +191,4 @@ finalDataFrame = finalDataFrame.drop(columns=['Issue Id'])
 finalDataFrame = finalDataFrame.loc[finalDataFrame['Time Spent Period'].isnull() == False]
 finalDataFrame = finalDataFrame.round(2).reset_index().drop(columns=['index'])
 
-finalDataFrame.to_csv('result.csv')
+finalDataFrame.to_csv('result.csv', encoding='utf-8', index=False, sep='\t')

@@ -11,8 +11,10 @@
 
 ##### Windows
 1. Открываем Terminal
-1. Устанавливаем Pandas: py -m install pandas
-1. Устанавливаем Requests: py -m install requests
+1. Устанавливаем Pandas: py -m install pandas 
+                    или: pip install pandas
+1. Устанавливаем Requests: py -m install requests 
+                      или: pip install requests
 
 #### Для работы скрипта вам нужно:
 1. Скачиваем файлы из репы. Code → Download ZIP.
@@ -29,5 +31,8 @@
 1. ПКМ на файле script.py в Finder → Open With → Other...
 1. Меняем значение Enable внизу открывшегося окна на All Applications
 1. Cтавим галочку Always Open With → Находим и выбираем Terminal.app (можно через поиск справа вверху окна) → Жмем Open
+
+##### Windows
+1. Можно сразу запускать скрипт двумя кликами по нему
 
 У вас откроется терминал и начнется выполняться скрипт, в следующий раз вы сможет просто два раза кликнут на сам файл script.py
