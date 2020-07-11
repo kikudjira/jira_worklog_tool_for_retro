@@ -29,7 +29,7 @@ def get_data_frame_from_json(data, keys, columns):
 
 
 # Получаем DataFrame не дев сотрудников (может только админ джиры)
-notDevURL = 'https://jira.csssr.io/rest/api/2/group/member?groupname=csssr-notdev'
+notDevURL = 'https://jira.csssr.io/rest/api/2/group/member?groupname=notdev'
 notDevData = get_json_from_jira(notDevURL)['values']
 
 notDevKeys = ['displayName'], ['key']

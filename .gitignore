@@ -9,3 +9,4 @@ script_1.py
 .idea
 *.xml
 *.iml
+!/notDev_exp.csv

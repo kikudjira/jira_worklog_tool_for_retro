@@ -10,9 +10,7 @@ from datetime import datetime
 
 
 def get_json_from_jira(url):
-    username = credits.username
-    password = credits.password
-    r = requests.get(url, auth=(username, password))
+    r = requests.get(url, auth=(credits.username, credits.password))
     data = r.json()
     return data
 
@@ -22,29 +20,27 @@ def get_field(obj, field_name):
 
 
 def post_json_to_jira(url, body):
-    username = credits.username
-    password = credits.password
-    r = requests.post(url, json=body, auth=(username, password))
+    r = requests.post(url, json=body, auth=(credits.username, credits.password))
     data = r.json()
     return data
 
 
 def get_data_frame_from_json(data, keys, columns):
     string_list = []
-    for s in data:
-        a = ()
+    for STR in data:
+        lst = ()
         for key in keys:
-            a += ((functools.reduce(get_field, key, s)),)
-        string_list.append(a)
+            lst += ((functools.reduce(get_field, key, STR)),)
+        string_list.append(lst)
     data_frame = pd.DataFrame(string_list)
     data_frame = data_frame.rename(columns=columns)
     return data_frame
 
-
+# Получаем путь до директории и файла скрипта в системе
 dirName, fileName = os.path.split(os.path.abspath(__file__))
 
 # Получаем DataFrame проектов
-projectsURL = 'https://jira.csssr.io/rest/api/2/project'
+projectsURL = credits.baseJiraURL + '/rest/api/2/project'
 projectsData = get_json_from_jira(projectsURL)
 
 projectsKeys = ['key'], ['name']
@@ -64,21 +60,21 @@ projects = input('Project(s): ').split(', ')
 
 checkedProject = ''
 wrongProject = ''
-for s in projects:
-    if projectsDataFrame.isin([s]).any().any():
+for STR in projects:
+    if projectsDataFrame.isin([STR]).any().any():
         checkedProject = 'ok'
     else:
         checkedProject = 'not ok'
-        wrongProject = s
+        wrongProject = STR
 while checkedProject != 'ok':
     print('Wrong! Project ' + wrongProject + ' is not in the Jira. Try again.')
     projects = input('Project(s): ').split(', ')
-    for s in projects:
-        if projectsDataFrame.isin([s]).any().any():
+    for STR in projects:
+        if projectsDataFrame.isin([STR]).any().any():
             checkedProject = 'ok'
         else:
             checkedProject = 'not ok'
-            wrongProject = s
+            wrongProject = STR
 
 # Вводим период времени и конверитим в unix timestamp
 dateFrom = input('From Date, Month, Year: ').split(', ')
@@ -89,7 +85,7 @@ notDevDataFrame = pd.read_csv(str(dirName) + '/notDev.csv')
 
 # Получаем задачи с апдейтом за указанный период времени
 projectForJQL = '%2C%20'.join(projects)
-issuesInPeriodURL = 'https://jira.csssr.io/rest/api/2/search?maxResults=500&jql=project%20in%20' \
+issuesInPeriodURL = credits.baseJiraURL + '/rest/api/2/search?maxResults=500&jql=project%20in%20' \
                     '(' + projectForJQL + ')%20and%20updated%20%3E%3D%20%22' \
                     + dateFrom[2] + '%2F' \
                     + dateFrom[1] + '%2F' \
@@ -134,7 +130,7 @@ n_index = len(issuesDataFrame.index)
 for issue in issuesDataFrame['Issue Id']:
     n += 1
     print(n, " from ", n_index)
-    getWorklogFromIssueURL = 'https://jira.csssr.io/rest/api/2/issue/' + issue + '/worklog'
+    getWorklogFromIssueURL = credits.baseJiraURL + '/rest/api/2/issue/' + issue + '/worklog'
     partWorklogs = get_json_from_jira(getWorklogFromIssueURL)
     totalWorklogsData += partWorklogs['worklogs']
 
@@ -185,7 +181,11 @@ resultDataFrame = resultDataFrame.loc[resultDataFrame['Time Spent'] != 0.0]
 # Собираем авторов ворклогов
 userDataFrame = resultDataFrame.drop(
     columns=['Issue Key', 'Time Spent', 'Issue Type', 'Components', 'Project', 'Summary', 'Original Estimate']
-).groupby('Issue Id')['Author'].apply(lambda x: list(np.unique(x))).reset_index()
+).groupby(
+    'Issue Id')['Author'
+].apply(
+    lambda x: list(np.unique(x))
+).reset_index()
 
 userDataFrame['Author'] = userDataFrame['Author'].apply(lambda x: ', '.join(map(str, x)))
 
@@ -198,11 +198,14 @@ resultDataFrame = resultDataFrame.drop(
     columns={'Author': 'Worklog Authors'}
 )
 
-resultDataFrame['Issue Key URL'] = 'https://jira.csssr.io/browse/' + resultDataFrame['Issue Key']
+# Добавляем колонку с урлом на задачу
+resultDataFrame['Issue Key URL'] = credits.baseJiraURL + '/browse/' + resultDataFrame['Issue Key']
 
+# Переводим время в часы
 resultDataFrame['Original Estimate'] = (resultDataFrame['Original Estimate'] / 60) / 60
 resultDataFrame['Time Spent'] = (resultDataFrame['Time Spent'] / 60) / 60
 
+# Делаем сводный датафрейм
 resultDataFramePivot = resultDataFrame.pivot_table(
     index=['Issue Id', 'Issue Key URL', 'Issue Key', 'Summary', 'Issue Type', 'Status', 'Worklog Authors',
            'Original Estimate'],
@@ -210,6 +213,7 @@ resultDataFramePivot = resultDataFrame.pivot_table(
     aggfunc=np.sum
 )
 
+# Делаем сортировку по типу задач и добавляем сумму ворклогов за период
 resultDataFrame = resultDataFramePivot.reindex(
     resultDataFramePivot.sort_values(by='Issue Type', ascending=False).index
 ).join(
@@ -217,7 +221,7 @@ resultDataFrame = resultDataFramePivot.reindex(
 ).reset_index().drop(
     columns='Issue Id')
 
+# Готовим датафрейм для сохранения и сохраняем в csv
 resultDataFrame = resultDataFrame.loc[resultDataFrame['Time Spent Period'].isnull() == False]
 resultDataFrame = resultDataFrame.round(2).reset_index().drop(columns=['index'])
-
 resultDataFrame.to_csv('result.csv', encoding='utf-8', index=False, sep='\t', decimal=',')
