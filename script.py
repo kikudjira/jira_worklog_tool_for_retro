@@ -5,8 +5,8 @@ import functools
 import requests
 import credits
 import numpy as np
-from datetime import datetime
 import os
+from datetime import datetime
 
 
 def get_json_from_jira(url):
@@ -41,7 +41,7 @@ def get_data_frame_from_json(data, keys, columns):
     return data_frame
 
 
-dirname, filename = os.path.split(os.path.abspath(__file__))
+dirName, fileName = os.path.split(os.path.abspath(__file__))
 
 # Получаем DataFrame проектов
 projectsURL = 'https://jira.csssr.io/rest/api/2/project'
@@ -85,7 +85,7 @@ dateFrom = input('From Date, Month, Year: ').split(', ')
 timestampFrom = str(int(datetime(int(dateFrom[2]), int(dateFrom[1]), int(dateFrom[0])).timestamp()))
 
 # Получаем DataFrame не дев сотрудников
-notDevDataFrame = pd.read_csv(str(dirname) + '/notDev.csv')
+notDevDataFrame = pd.read_csv(str(dirName) + '/notDev.csv')
 
 # Получаем задачи с апдейтом за указанный период времени
 projectForJQL = '%2C%20'.join(projects)
