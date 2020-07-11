@@ -123,13 +123,13 @@ issuesDataFrame = issuesInPeriodDataFrame.loc[issuesInPeriodDataFrame['Component
 
 # Вытаскиваем все ворклоги из каждой задачи
 print('Начинаю вытаскивать ворклоги из всех задач...')
-totalWorklogsData = []
 
+totalWorklogsData = []
 n = 0
-n_index = len(issuesDataFrame.index)
+
 for issue in issuesDataFrame['Issue Id']:
     n += 1
-    print(n, " from ", n_index)
+    print(n, " from ", len(issuesDataFrame.index))
     getWorklogFromIssueURL = credits.baseJiraURL + '/rest/api/2/issue/' + issue + '/worklog'
     partWorklogs = get_json_from_jira(getWorklogFromIssueURL)
     totalWorklogsData += partWorklogs['worklogs']
