@@ -36,6 +36,7 @@ def get_data_frame_from_json(data, keys, columns):
     data_frame = data_frame.rename(columns=columns)
     return data_frame
 
+
 # Получаем путь до директории и файла скрипта в системе
 dirName, fileName = os.path.split(os.path.abspath(__file__))
 
@@ -86,7 +87,7 @@ notDevDataFrame = pd.read_csv(str(dirName) + '/notDev.csv')
 # Получаем задачи с апдейтом за указанный период времени
 projectForJQL = '%2C%20'.join(projects)
 issuesInPeriodURL = credits.baseJiraURL + '/rest/api/2/search?maxResults=500&jql=project%20in%20' \
-                    '(' + projectForJQL + ')%20and%20updated%20%3E%3D%20%22' \
+                                          '(' + projectForJQL + ')%20and%20updated%20%3E%3D%20%22' \
                     + dateFrom[2] + '%2F' \
                     + dateFrom[1] + '%2F' \
                     + dateFrom[0] + '%2000%3A00%22'
