@@ -2,7 +2,7 @@
 __pycache__
 credits.py
 test.py
-script_1.py
+script_fun.py
 *.csv
 *.json
 .run

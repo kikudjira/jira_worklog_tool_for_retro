@@ -1,3 +1,5 @@
+#!/usr/local/bin/python3
+# coding=utf-8
 import pandas as pd
 import functools
 import requests
@@ -33,6 +35,7 @@ notDevData = get_json_from_jira(notDevURL)['values']
 notDevKeys = ['displayName'], ['key']
 notDevColumns = {
     0: 'Name',
-    1: 'Key'}
+    1: 'Key'
+}
 
 notDevDataFrame = get_data_frame_from_json(notDevData, notDevKeys, notDevColumns).to_csv('notDev.csv')

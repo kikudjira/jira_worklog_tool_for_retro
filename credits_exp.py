@@ -2,4 +2,4 @@
 # А https://jira.url на адрес вашей серверной джиры.
 username = 'jira_login'
 password = 'jira_password'
-baseURL = 'https://jira.url'
+baseJiraURL = 'https://jira.url'
