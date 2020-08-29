@@ -10,3 +10,5 @@ script_fun.py
 *.xml
 *.iml
 !/notDev_exp.csv
+config.cfg
+credits.cfg
