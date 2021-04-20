@@ -78,7 +78,7 @@ while checkedProject != 'ok':
             wrongProject = STR
 
 # Вводим период времени и конверитим в unix timestamp
-dateFrom = input('From Date, Month, Year: ').split(', ')
+dateFrom = input('From Date(##), Month(##), Year(####): ').split(', ')
 timestampFrom = str(int(datetime(int(dateFrom[2]), int(dateFrom[1]), int(dateFrom[0])).timestamp()))
 
 # Получаем DataFrame не дев сотрудников
