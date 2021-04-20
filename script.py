@@ -79,27 +79,6 @@ while checkedProject != 'ok':
 
 # Вводим период времени и конверитим в unix timestamp
 dateFrom = input('From Date(##), Month(##), Year(####): ').split(', ')
-
-# ToDo: Написать валидатор строчки с датой
-
-# checkedDateFrom = ''
-# wrongDateFrom = ''
-# for STR in dateFrom:
-#     if STR:
-#         checkedDateFrom = 'ok'
-#     else:
-#         checkedDateFrom = 'not ok'
-#         wrongDateFrom = STR
-# while checkedDateFrom != 'ok':
-#     print('Wrong! Project ' + wrongDateFrom + ' is not in the Jira. Try again.')
-#     projects = input('Project(s): ').split(', ')
-#     for STR in projects:
-#         if projectsDataFrame.isin([STR]).any().any():
-#             checkedDateFrom = 'ok'
-#         else:
-#             checkedDateFrom = 'not ok'
-#             wrongDateFrom = STR
-
 timestampFrom = str(int(datetime(int(dateFrom[2]), int(dateFrom[1]), int(dateFrom[0])).timestamp()))
 
 # Получаем DataFrame не дев сотрудников
